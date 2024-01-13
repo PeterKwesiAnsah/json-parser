@@ -121,6 +121,9 @@ function tokenizer(input: string) {
 			if (alphanumbericRegex.test(getChar())) {
 				let firstCharCursor = cursor;
 				let string = '';
+				const trueBooleanString = 'true';
+				const falseBooleanString = 'false';
+				const nullString = 'null';
 				// const openingQuotePresent = input[cursor - 1] === '"';
 				// if (!openingQuotePresent) {
 				// 	process.exit(1);
@@ -130,13 +133,53 @@ function tokenizer(input: string) {
 					string = string + getChar();
 					cursor = cursor + 1;
 				}
+				const closingQuotePresent = getChar() === '"';
+				const openingQuotePresent = input[firstCharCursor - 1] === '"';
 				if (isNaN(string as unknown as any)) {
 					//string
-					const closingQuotePresent = getChar() === '"';
-					const openingQuotePresent = input[firstCharCursor - 1] === '"';
-					if (!closingQuotePresent && !openingQuotePresent) {
-						process.exit(1);
+
+					if (
+						string === trueBooleanString ||
+						string === falseBooleanString ||
+						string === nullString
+					) {
+						const typeDic: {
+							true: { type: 'Boolean'; value: boolean };
+							false: { type: 'Boolean'; value: boolean };
+							null: { type: 'Null'; value: null };
+						} = {
+							[trueBooleanString]: {
+								type: 'Boolean',
+								value: true,
+							},
+							[falseBooleanString]: {
+								type: 'Boolean',
+								value: false,
+							},
+							[nullString]: {
+								type: 'Null',
+								value: null,
+							},
+						};
+						if (!closingQuotePresent && !openingQuotePresent) {
+							const token = typeDic[string];
+							tokens.push(token);
+							continue;
+						}
 					}
+				} else if (!isNaN(string as unknown as any)) {
+					if (!closingQuotePresent && !openingQuotePresent) {
+						//const token = typeDic[string];
+						tokens.push({
+							type: 'Number',
+							value: parseInt(string),
+						});
+						continue;
+					}
+				}
+
+				if (!closingQuotePresent && !openingQuotePresent) {
+					process.exit(1);
 				}
 				// const closingQuotePresent = getChar() === '"';
 				// if (!closingQuotePresent) {
@@ -242,7 +285,12 @@ function JSONParser(input: string) {
 				value: getToken().value,
 			};
 		}
-		if (getToken().type === 'String') {
+		if (
+			getToken().type === 'String' ||
+			getToken().type === 'Boolean' ||
+			getToken().type === 'Null' ||
+			getToken().type === 'Number'
+		) {
 			const nodeValue = getToken().value;
 			cursor++;
 			return nodeValue;
