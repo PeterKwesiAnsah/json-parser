@@ -1,4 +1,4 @@
-const { parser } = require('../index');
+var { parser } = require('../index');
 
 describe('JSON parser', () => {
 	let originalExit = () => {};
