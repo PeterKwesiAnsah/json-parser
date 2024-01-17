@@ -52,9 +52,14 @@ function tokenizer(input: string) {
 			}
 			if (getChar() === ',') {
 				//const nextCharValidRegix = /[a-zA-Z0-9"]/i;
+				// console.log(input[cursor + 1]);
 				if (input[cursor + 1] === '}') {
 					process.exit(1);
 				}
+				// if (input[cursor + 1] === '}') {
+				// 	return;
+				// }
+				//console.log('why');
 				tokens.push({
 					type: 'Comma',
 					value: ',',
@@ -66,6 +71,22 @@ function tokenizer(input: string) {
 				tokens.push({
 					type: 'Colon',
 					value: ':',
+				});
+				cursor++;
+				continue;
+			}
+			if (getChar() === '[') {
+				tokens.push({
+					type: 'ArrayStart',
+					value: '[',
+				});
+				cursor++;
+				continue;
+			}
+			if (getChar() === ']') {
+				tokens.push({
+					type: 'ArrayEnd',
+					value: ']',
 				});
 				cursor++;
 				continue;
@@ -194,7 +215,7 @@ function tokenizer(input: string) {
 				continue;
 			}
 
-			throw new TypeError('Unexpected Character: ' + getChar());
+			//throw new TypeError('Unexpected Character: ' + getChar());
 		}
 		return tokens;
 	} else {
@@ -204,15 +225,17 @@ function tokenizer(input: string) {
 }
 
 function JSONParser(input: string) {
-	const ast: any = {
-		type: 'JSON',
-		properties: [],
-	};
+	// const ast: any = {
+	// 	type: 'JSON',
+	// 	properties: [],
+	// };
 	const tokens = tokenizer(input);
 	if (!tokens) return;
+	//console.log(tokens);
 
 	let cursor = 0;
 	const getToken = () => tokens[cursor];
+
 	function walk(): any {
 		/**
 		 *
@@ -223,68 +246,101 @@ function JSONParser(input: string) {
 		 * ]
 		 * {age:12,info:{name:'peter'}} ===> {key:'age',value:12,key:'info',value:{key:'name',value:'peter'}}
 		 */
+		//console.log(getToken(), 'token');
+		// if (
+		// 	tokens &&
+		// 	getToken().type === 'String' &&
+		// 	tokens[cursor - 1].type === 'Comma' &&
+		// 	tokens[cursor + 1].type === 'Colon'
+		// ) {
+		// 	console.log('here');
+		// 	const key = getToken().value;
+		// 	//cursor: 1-first walk iteration
+		// 	//console.log(key);
+		// 	let value = null;
+		// 	while (getToken().type !== 'ObjectEnd' && getToken().type !== 'Comma') {
+		// 		cursor++;
+		// 		//console.log(cursor);
+		// 		//cursor: 2 first walk iteration
+		// 		if (getToken().type === 'Colon') {
+		// 			cursor++;
+		// 			//cursor: 3 first walk iteration
+		// 			//continue;
+		// 		}
+		// 		value = walk();
+		// 		//properties.push(walk());
+		// 		//console.log(getToken());
+		// 	}
+		// 	return {
+		// 		key,
+		// 		value,
+		// 	};
+		// }
 
-		if (
-			getToken().type === 'String' &&
-			tokens[cursor - 1].type === 'Comma' &&
-			tokens[cursor + 1].type === 'Colon'
-		) {
-			const key = getToken().value;
-			//cursor: 1-first walk iteration
-			//console.log(key);
-			let value = null;
-			while (getToken().type !== 'ObjectEnd' && getToken().type !== 'Comma') {
-				cursor++;
-				//console.log(cursor);
-				//cursor: 2 first walk iteration
-				if (getToken().type === 'Colon') {
-					cursor++;
-					//cursor: 3 first walk iteration
-					//continue;
-				}
-				value = walk();
-				//properties.push(walk());
-				//console.log(getToken());
-			}
-			return {
-				key,
-				value,
-			};
-		}
-
-		// if(getToken().type==='Comma'){
-		//     cursor++
+		// if (getToken().type === 'Comma') {
+		// 	cursor++;
 		// }
 		//cursor: 0
 		//'{"nationality":{"kofi":"bad","lastname":"ansah"}}'
+		// if(getToken().type==='Comma'){
+		// 	cursor++
+		// }
 		if (getToken().type === 'ObjectStart' && getToken().value == '{') {
 			//we move pass the bracket and get the name of a key
-			cursor++;
-			const key = getToken().value;
+			const ast: any = {
+				type: 'JSON',
+				properties: [],
+			};
+
+			let openingCursor = cursor;
+			let cursorChange = 0;
+			const metClosingTag = () =>
+				getToken().type === 'ObjectEnd' &&
+				openingCursor + cursorChange === cursor;
+
+			//{"key": {"key2": "value2"},"key2":false}
+			//0       3                78   9   10 11 12
 			//cursor: 1-first walk iteration
-			let value = null;
-			while (getToken().type !== 'ObjectEnd' && getToken().type !== 'Comma') {
+			//let value = null;
+			while (!metClosingTag()) {
 				cursor++;
+				cursorChange++;
+				if (!getToken()) return ast;
+				const key = getToken().value;
+
+				//console.log(getToken());
+				cursor++;
+				cursorChange++;
 				//cursor: 2 first walk iteration
-				if (getToken().type === 'Colon') {
+				if (getToken() && getToken().type === 'Colon') {
 					cursor++;
+					cursorChange++;
 					//cursor: 3 first walk iteration
 					//continue;
 				}
-				value = walk();
+				ast.properties.push({
+					key,
+					value: walk(),
+				});
+				cursor++;
+				cursorChange++;
+				//cursor++;
+				// while (tokens[cursor + 1]?.type === 'ObjectEnd') {
+				// 	cursor++;
+				// 	continue;
+				// }
+				//value = walk();
+				//console.log(cursor);
 			}
-			return {
-				key,
-				value,
-			};
+			return ast;
 		}
-		if (getToken().type === 'Colon' && getToken().value === ':') {
-			cursor++;
-			return {
-				type: 'JSONString',
-				value: getToken().value,
-			};
-		}
+		// if (getToken().type === 'Colon' && getToken().value === ':') {
+		// 	cursor++;
+		// 	return {
+		// 		type: 'JSONString',
+		// 		value: getToken().value,
+		// 	};
+		// }
 		if (
 			getToken().type === 'String' ||
 			getToken().type === 'Boolean' ||
@@ -292,9 +348,12 @@ function JSONParser(input: string) {
 			getToken().type === 'Number'
 		) {
 			const nodeValue = getToken().value;
-			cursor++;
 			return nodeValue;
 		}
+
+		//throw new Error('Unexpected Token');
+		//this line should throw an error , because we don't know what it is
+		//
 		// if (getToken().type === 'ObjectEnd') {
 		// 	cursor++;
 		// }
@@ -304,17 +363,30 @@ function JSONParser(input: string) {
 		//return getToken().value;
 		//return numbers/boolean/strings/null as they are
 	}
-	while (cursor < tokens.length) {
-		const property = walk();
-		//console.log(property);
-		ast.properties.push(property);
-		cursor++;
-		//cursor should be 5 at the end
-		//walk should not produced undefined
-	}
+
+	// let res = null;
+	// while (cursor < tokens.length) {
+	// 	//this a temporal fix to the undefined
+	// 	//walk should not return undefined
+	// 	const result = walk();
+	// 	//console.log(result);
+	// 	res = result;
+	// 	console.log(result);
+	// 	//console.log(JSON.stringify(res, null, 2));
+	// 	//console.log(res);
+	// 	cursor++;
+
+	// 	//console.log(property);
+	// 	//ast.properties.push(property);
+
+	// 	//cursor should be 5 at the end
+	// 	//walk should not produced undefined
+	// }
 	//console.log(ast.properties.length);
-	return ast;
+	return walk();
 }
+//JSONParser('{"key": {"key2": "value2"}}');
+console.log(JSON.stringify(JSONParser(`{"key": {"key2": "value2"}}`), null, 2));
 //console.log(JSON.stringify(JSONParser('{"key": "value"}')));
 module.exports = {
 	parser: JSONParser,
@@ -322,3 +394,5 @@ module.exports = {
 // console.log(
 // 	parser(tokenizer('{"kofi":"bad","lastname":"ansah","age":"Twelve"}'))
 // );
+
+//{\"type\":\"JSON\",\"properties\":[{\"key\":\"key1\",\"value\":true},{\"key\":\",\",\"value\":{\"key\":\"key2\",\"value\":false}},{\"key\":\",\",\"value\":{\"key\":\"key3\",\"value\":null}},{\"key\":\",\",\"value\":{\"key\":\"key4\",\"value\":\"value\"}},{\"key\":\",\",\"value\":{\"key\":\"key5\",\"value\":101}}]}

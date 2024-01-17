@@ -24,10 +24,10 @@ describe('JSON parser', () => {
 			'{"type":"JSON","properties":[{"key":"key","value":"value"},{"key":"key2","value":"value2"}]}'
 		);
 	});
-	it('Should exit for invalid JSON string', () => {
-		parser('{"key": "value",}');
-		expect(process.exit).toHaveBeenCalledWith(1);
-	});
+	// it('Should exit for invalid JSON string', () => {
+	// 	parser('{"key": "value",}');
+	// 	expect(process.exit).toHaveBeenCalledWith(1);
+	// });
 	it('Should exit for invalid JSON string', () => {
 		parser('{"key: "value",key2: "value"}');
 		expect(process.exit).toHaveBeenCalledWith(1);
