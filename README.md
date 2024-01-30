@@ -4,9 +4,13 @@ A powerful TypeScript-based JSON parser that not only validates JSON strings acc
 Handles edge cases like nested objects and arrays.
 
 ## SETUP
+Run to install dev dependencies:
 ```bash
 npm install
-yarn install
+```
+Now to run the main script:
+```bash
+npm run parse
 ```
 
 ## USAGE
@@ -34,4 +38,8 @@ JSONParser(`{"key": "value", "array": [1, 2, 3]}`)
     }
   ]
 }
+```
+## TESTS
+```bash
+npm run test
 ```
