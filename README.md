@@ -3,6 +3,12 @@
 A powerful TypeScript-based JSON parser that not only validates JSON strings according to the JSON specification but also transforms them into a structured Abstract Syntax Tree (AST) format.
 Handles edge cases like nested objects and arrays.
 
+## SETUP
+```bash
+npm install
+yarn install
+```
+
 ## USAGE
 ```javascript
 JSONParser(`{"key": "value", "array": [1, 2, 3]}`)
