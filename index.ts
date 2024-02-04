@@ -156,7 +156,7 @@ function tokenizer(input: string) {
 			// 	process.exit(1);
 			// 	//throw new Error('Unexpected Character: ' + getChar());
 			// }
-			while (alphanumbericRegex.test(getChar())) {
+			while (cursor < length && alphanumbericRegex.test(getChar())) {
 				string = string + getChar();
 				cursor = cursor + 1;
 			}
