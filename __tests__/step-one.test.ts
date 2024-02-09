@@ -14,4 +14,7 @@ describe('JSON parser', () => {
 	it('Should parse valid JSON string', () => {
 		expect(parser('false')).toBe(false);
 	});
+	it('Should parse valid JSON string', () => {
+		expect(parser('null')).toBe(null);
+	});
 });

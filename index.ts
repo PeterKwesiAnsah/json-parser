@@ -145,6 +145,8 @@ function tokenizer(input: string) {
 		//k e y
 		//2 3 4
 		const alphanumbericRegex = /[a-zA-Z0-9-\s]/i;
+		//TODO: this branch is expected to produce 'true(boolean literal)','false(boolean literal)','number(string)','null' any value here is unexpected
+
 		if (alphanumbericRegex.test(getChar())) {
 			let firstCharCursor = cursor;
 			let string = '';
@@ -220,6 +222,7 @@ function tokenizer(input: string) {
 
 			continue;
 		}
+		//TODO: Another flow for string literals(which gon be hard)
 		cursor++;
 		continue;
 
